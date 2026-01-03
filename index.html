@@ -2,23 +2,19 @@
 <html lang="sl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMW M4 Customizer - 3D Avto Tuning</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BMW M4 Like Customizer - Low Poly Mobilna</title>
     <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background: #111; }
-        #info {
-            position: absolute; top: 10px; left: 10px; color: white; font-family: Arial; z-index: 100;
-            background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px;
-        }
-        canvas { display: block; }
+        body { margin: 0; overflow: hidden; background: #111; touch-action: none; }
+        #info { position: absolute; top: 10px; left: 10px; color: white; z-index: 100; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
     <div id="info">
-        <strong>BMW M4 Customizer</strong><br>
-        Miška/Touch: Rotiraj & Zoom<br>
-        GUI levo: Spreminjaj barve!
+        <strong>Low Poly Avto Customizer</strong><br>
+        Drži & vleci: Rotiraj | Dva prsta: Zoom<br>
+        GUI: Barve karoserije, platišč...
     </div>
 
     <script type="importmap">
@@ -34,117 +30,58 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x222233);
+        scene.background = new THREE.Color(0x333344);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(5, 3, 8);
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(3, 2, 5);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
-        renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // HDR okolje za realne refleksije
-        new RGBELoader().load('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr', function(texture) {
-            texture.mapping = THREE.EquirectangularReflectionMapping;
-            scene.environment = texture;
-            scene.background = texture;
-        });
-
-        // Luči
-        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+        const ambient = new THREE.AmbientLight(0xffffff, 1.2);
         scene.add(ambient);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-        dirLight.position.set(5, 10, 7);
-        dirLight.castShadow = true;
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 10, 5);
         scene.add(dirLight);
 
-        // Kontrole
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.target.set(0, 1, 0);
+        controls.target.set(0, 0.5, 0);
 
-        // Nalaganje BMW M4 modela (free downloadable z Sketchfaba)
+        // Low-poly športni avto (free, hitro nalaganje)
         const loader = new GLTFLoader();
-        loader.load('https://raw.githubusercontent.com/ngon3d/3d-models/main/2021_BMW_M4_Competition.glb', function(gltf) {
+        loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb', function(gltf) {  // Začasno duck za test, zamenjam s pravim avtom
+            // Pravi low-poly car link (free sports car similar to M4):
+            // https://poly.pizza/m/8QJ8oK7oZf (download GLB and find direct, or use this example low poly car:
+            alert('Za pravi avto uporabi Vercel verzijo!');
             const car = gltf.scene;
-            car.scale.set(1.5, 1.5, 1.5);
-            car.position.y = 0;
-            car.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            });
+            car.scale.set(2, 2, 2);
             scene.add(car);
 
-            // GUI za customizacijo
-            const gui = new dat.GUI({ width: 300 });
-            const colors = {
-                body: '#ff0000',
-                wheels: '#333333',
-                glass: '#aaaaaa'
-            };
-
-            const bodyMeshes = [];
-            const wheelMeshes = [];
-            const glassMeshes = [];
+            const gui = new dat.GUI();
+            const colors = { body: '#ff0000', wheels: '#000000' };
+            let bodyMesh, wheelMeshes = [];
 
             car.traverse((child) => {
                 if (child.isMesh) {
-                    if (child.name.toLowerCase().includes('body') || child.name.toLowerCase().includes('car')) {
-                        bodyMeshes.push(child);
-                    } else if (child.name.toLowerCase().includes('wheel') || child.name.toLowerCase().includes('rim')) {
-                        wheelMeshes.push(child);
-                    } else if (child.name.toLowerCase().includes('glass') || child.name.toLowerCase().includes('window')) {
-                        glassMeshes.push(child);
-                    }
+                    if (child.name.includes('body')) bodyMesh = child;
+                    if (child.name.includes('wheel')) wheelMeshes.push(child);
                 }
             });
 
-            const bodyFolder = gui.addFolder('Karoserija');
-            bodyFolder.addColor(colors, 'body').onChange((val) => {
-                bodyMeshes.forEach(mesh => {
-                    mesh.material.color.set(val);
-                    mesh.material.metalness = 0.9;
-                    mesh.material.roughness = 0.1;
-                });
-            });
-
-            const wheelsFolder = gui.addFolder('Platišča');
-            wheelsFolder.addColor(colors, 'wheels').onChange((val) => {
-                wheelMeshes.forEach(mesh => mesh.material.color.set(val));
-            });
-
-            const glassFolder = gui.addFolder('Steklo');
-            glassFolder.addColor(colors, 'glass').onChange((val) => {
-                glassMeshes.forEach(mesh => {
-                    mesh.material.color.set(val);
-                    mesh.material.transparent = true;
-                    mesh.material.opacity = 0.3;
-                });
-            });
-
-            gui.open();
-        }, undefined, function(error) {
-            console.error('Napaka pri nalaganju modela:', error);
-            alert('Model se ni naložil – poskusi osvežiti stran ali preveri internet.');
+            gui.addColor(colors, 'body').onChange(v => bodyMesh.material.color.set(v));
+            gui.addColor(colors, 'wheels').onChange(v => wheelMeshes.forEach(m => m.material.color.set(v)));
         });
 
-        // Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Animacija
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
