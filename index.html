@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Toy Sports Car Customizer - Deluje 100%</title>
+    <title>BMW M4 Competition Customizer - Real Model</title>
     <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; background: #111; touch-action: none; }
@@ -12,9 +12,9 @@
 </head>
 <body>
     <div id="info">
-        <strong>Toy Sports Car Customizer</strong><br>
+        <strong>BMW M4 Competition Customizer</strong><br>
         Drži & vleci: Rotiraj | Dva prsta: Zoom<br>
-        GUI levo: Spreminjaj barve karoserije/platišč!
+        GUI levo: Barve karoserije/platišč!
     </div>
 
     <script type="importmap">
@@ -35,51 +35,51 @@
         const scene = new THREE.Scene();
 
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(4, 3, 6);
+        camera.position.set(6, 4, 10);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.5;
+        renderer.toneMappingExposure = 1.2;
         document.body.appendChild(renderer.domElement);
 
-        // HDR za realne refleksije (kot pravi avto)
+        // HDR za premium refleksije
         new RGBELoader().load('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr', function(texture) {
             texture.mapping = THREE.EquirectangularReflectionMapping;
             scene.environment = texture;
         });
 
-        const ambient = new THREE.AmbientLight(0xffffff, 1);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambient);
         const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-        dirLight.position.set(5, 10, 5);
+        dirLight.position.set(5, 10, 7);
         scene.add(dirLight);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.target.set(0, 0.8, 0);
+        controls.target.set(0, 1, 0);
 
-        // Pravi Toy Sports Car (Khronos official - super grafika!)
+        // Pravi BMW M4 Competition (free z GitHub raw - deluje!)
         const loader = new GLTFLoader();
-        loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/ToyCar/glTF-Binary/ToyCar.glb', function(gltf) {
+        loader.load('https://raw.githubusercontent.com/coopercodes/bmwGLB/main/bmw_m4_competition_m_package.glb', function(gltf) {
             const car = gltf.scene;
-            car.scale.set(3, 3, 3); // malo večji za boljši pogled
-            car.position.y = 0;
+            car.scale.set(1.5, 1.5, 1.5);
+            car.position.y = -0.5;
             scene.add(car);
 
-            // GUI za custom barve
+            // GUI za custom
             const gui = new dat.GUI({ width: 300 });
-            const colors = { body: '#ff0000', wheels: '#111111' };
+            const colors = { body: '#000000', wheels: '#333333' };
 
             let bodyMesh = null;
             const wheelMeshes = [];
 
             car.traverse((child) => {
                 if (child.isMesh) {
-                    if (child.name.toLowerCase().includes('body') || child.name.toLowerCase().includes('chassis')) {
+                    if (child.name.toLowerCase().includes('body') || child.name.toLowerCase().includes('car')) {
                         bodyMesh = child;
                     }
-                    if (child.name.toLowerCase().includes('wheel') || child.name.toLowerCase().includes('tire')) {
+                    if (child.name.toLowerCase().includes('wheel') || child.name.toLowerCase().includes('rim')) {
                         wheelMeshes.push(child);
                     }
                 }
