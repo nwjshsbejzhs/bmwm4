@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BMW M4 Like Customizer - Low Poly Mobilna</title>
+    <title>Sports Car Customizer - High Quality</title>
     <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; background: #111; touch-action: none; }
-        #info { position: absolute; top: 10px; left: 10px; color: white; z-index: 100; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; }
+        #info {
+            position: absolute; top: 10px; left: 10px; color: white; z-index: 100;
+            background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div id="info">
-        <strong>Low Poly Avto Customizer</strong><br>
+        <strong>Sports Car Customizer</strong><br>
         Drži & vleci: Rotiraj | Dva prsta: Zoom<br>
-        GUI: Barve karoserije, platišč...
+        GUI levo: Spreminjaj barve!
     </div>
 
     <script type="importmap">
@@ -30,50 +33,89 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x333344);
 
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(3, 2, 5);
+        camera.position.set(5, 3, 8);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
         document.body.appendChild(renderer.domElement);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+        // HDR za super refleksije
+        new RGBELoader().load('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_09_1k.hdr', function(texture) {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.environment = texture;
+        });
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambient);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-        dirLight.position.set(5, 10, 5);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+        dirLight.position.set(5, 10, 7);
         scene.add(dirLight);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.target.set(0, 0.5, 0);
+        controls.target.set(0, 1, 0);
 
-        // Low-poly športni avto (free, hitro nalaganje)
+        // High quality sports car - Ferrari 458 Italia (free sample z CORS)
         const loader = new GLTFLoader();
-        loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb', function(gltf) {  // Začasno duck za test, zamenjam s pravim avtom
-            // Pravi low-poly car link (free sports car similar to M4):
-            // https://poly.pizza/m/8QJ8oK7oZf (download GLB and find direct, or use this example low poly car:
-            alert('Za pravi avto uporabi Vercel verzijo!');
+        loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Ferrari_458_Italia/glTF/Ferrari_458_Italia.gltf', function(gltf) {
             const car = gltf.scene;
-            car.scale.set(2, 2, 2);
+            car.scale.set(1.8, 1.8, 1.8);
+            car.position.y = 0;
             scene.add(car);
 
-            const gui = new dat.GUI();
-            const colors = { body: '#ff0000', wheels: '#000000' };
-            let bodyMesh, wheelMeshes = [];
+            // GUI za barve
+            const gui = new dat.GUI({ width: 300 });
+            const colors = {
+                body: '#ff0000',    // rdeča default
+                wheels: '#333333',
+                glass: '#aaaaaa',
+                interior: '#000000'
+            };
+
+            const bodyMeshes = [];
+            const wheelMeshes = [];
+            const glassMeshes = [];
+            const interiorMeshes = [];
 
             car.traverse((child) => {
                 if (child.isMesh) {
-                    if (child.name.includes('body')) bodyMesh = child;
-                    if (child.name.includes('wheel')) wheelMeshes.push(child);
+                    if (child.name.toLowerCase().includes('body') || child.name.toLowerCase().includes('chassis')) {
+                        bodyMeshes.push(child);
+                    } else if (child.name.toLowerCase().includes('wheel') || child.name.toLowerCase().includes('rim') || child.name.toLowerCase().includes('tire')) {
+                        wheelMeshes.push(child);
+                    } else if (child.name.toLowerCase().includes('glass') || child.name.toLowerCase().includes('window')) {
+                        glassMeshes.push(child);
+                    } else if (child.name.toLowerCase().includes('interior') || child.name.toLowerCase().includes('seat')) {
+                        interiorMeshes.push(child);
+                    }
                 }
             });
 
-            gui.addColor(colors, 'body').onChange(v => bodyMesh.material.color.set(v));
-            gui.addColor(colors, 'wheels').onChange(v => wheelMeshes.forEach(m => m.material.color.set(v)));
+            const bodyFolder = gui.addFolder('Karoserija');
+            bodyFolder.addColor(colors, 'body').onChange(val => bodyMeshes.forEach(m => m.material.color.set(val)));
+
+            const wheelsFolder = gui.addFolder('Platišča');
+            wheelsFolder.addColor(colors, 'wheels').onChange(val => wheelMeshes.forEach(m => m.material.color.set(val)));
+
+            const glassFolder = gui.addFolder('Steklo');
+            glassFolder.addColor(colors, 'glass').onChange(val => {
+                glassMeshes.forEach(m => {
+                    m.material.color.set(val);
+                    m.material.transparent = true;
+                    m.material.opacity = 0.4;
+                });
+            });
+
+            gui.open();
+        }, undefined, function(error) {
+            alert('Napaka – preveri internet in osveži stran.');
         });
 
         window.addEventListener('resize', () => {
