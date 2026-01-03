@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Toy Sports Car Customizer - High Quality</title>
+    <title>Toy Sports Car Customizer - Deluje 100%</title>
     <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; background: #111; touch-action: none; }
@@ -12,9 +12,9 @@
 </head>
 <body>
     <div id="info">
-        <strong>Toy Car Customizer</strong><br>
+        <strong>Toy Sports Car Customizer</strong><br>
         Drži & vleci: Rotiraj | Dva prsta: Zoom<br>
-        GUI levo: Barve karoserije in platišč!
+        GUI levo: Spreminjaj barve karoserije/platišč!
     </div>
 
     <script type="importmap">
@@ -35,7 +35,7 @@
         const scene = new THREE.Scene();
 
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(3, 2, 5);
+        camera.position.set(4, 3, 6);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -43,7 +43,8 @@
         renderer.toneMappingExposure = 1.5;
         document.body.appendChild(renderer.domElement);
 
-        new RGBELoader().load('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/royal_esplanade_1k.hdr', function(texture) {
+        // HDR za realne refleksije (kot pravi avto)
+        new RGBELoader().load('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr', function(texture) {
             texture.mapping = THREE.EquirectangularReflectionMapping;
             scene.environment = texture;
         });
@@ -56,35 +57,42 @@
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.target.set(0, 0.5, 0);
+        controls.target.set(0, 0.8, 0);
 
-        // Uradni Khronos Toy Car - pravi avto z odlično grafiko
+        // Pravi Toy Sports Car (Khronos official - super grafika!)
         const loader = new GLTFLoader();
         loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/ToyCar/glTF-Binary/ToyCar.glb', function(gltf) {
             const car = gltf.scene;
-            car.scale.set(2, 2, 2);
+            car.scale.set(3, 3, 3); // malo večji za boljši pogled
             car.position.y = 0;
             scene.add(car);
 
+            // GUI za custom barve
             const gui = new dat.GUI({ width: 300 });
-            const colors = { body: '#ff0000', wheels: '#000000' };
+            const colors = { body: '#ff0000', wheels: '#111111' };
 
-            let bodyMesh;
+            let bodyMesh = null;
             const wheelMeshes = [];
 
             car.traverse((child) => {
                 if (child.isMesh) {
-                    if (child.name.toLowerCase().includes('body')) bodyMesh = child;
-                    if (child.name.toLowerCase().includes('wheel')) wheelMeshes.push(child);
+                    if (child.name.toLowerCase().includes('body') || child.name.toLowerCase().includes('chassis')) {
+                        bodyMesh = child;
+                    }
+                    if (child.name.toLowerCase().includes('wheel') || child.name.toLowerCase().includes('tire')) {
+                        wheelMeshes.push(child);
+                    }
                 }
             });
 
-            gui.addColor(colors, 'body').onChange(v => { if (bodyMesh) bodyMesh.material.color.set(v); });
-            gui.addColor(colors, 'wheels').onChange(v => wheelMeshes.forEach(m => m.material.color.set(v)));
+            if (bodyMesh) {
+                gui.addColor(colors, 'body').name('Karoserija').onChange(v => bodyMesh.material.color.set(v));
+            }
+            gui.addColor(colors, 'wheels').name('Platišča').onChange(v => wheelMeshes.forEach(m => m.material.color.set(v)));
 
             gui.open();
         }, undefined, function(error) {
-            alert('Napaka – osveži stran z dobrim internetom.');
+            alert('Napaka – osveži z Wi-Fi!');
         });
 
         window.addEventListener('resize', () => {
