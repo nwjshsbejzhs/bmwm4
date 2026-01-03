@@ -2,60 +2,86 @@
 <html lang="sl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D BMW M4 Customizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Moj BMW M4 Customizer</title>
     <style>
-        body { margin: 0; background: #222; color: white; font-family: Arial; text-align: center; }
-        #car-container { margin: 20px auto; width: 90%; max-width: 600px; position: relative; }
-        #car-image { width: 100%; height: auto; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #controls { margin: 20px; }
-        button { padding: 10px 20px; margin: 5px; font-size: 16px; background: #444; color: white; border: none; border-radius: 5px; }
-        button:hover { background: #666; }
+        body { margin: 0; background: #111; color: white; font-family: Arial, sans-serif; text-align: center; overflow: hidden; }
+        h1 { margin: 20px 0 10px; font-size: 24px; }
+        #car-container { position: relative; width: 95vw; max-width: 600px; margin: 10px auto; }
+        #car { width: 100%; height: auto; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .part { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; border-radius: 15px; }
+        #controls { padding: 20px; }
+        .section { margin: 20px 0; }
+        button { padding: 12px 20px; margin: 6px; font-size: 16px; background: #333; color: white; border: none; border-radius: 10px; }
+        button:hover, button.active { background: #007bff; }
     </style>
 </head>
 <body>
-    <h1>2D BMW M4 Customizer</h1>
-    <p>Izberi barve in tuning dele!</p>
+    <h1>Moj BMW M4 Customizer</h1>
     
     <div id="car-container">
-        <img id="car-image" src="https://via.placeholder.com/600x300/000000/ffffff?text=BMW+M4+Base" alt="BMW M4">
-        <div id="rims-overlay" class="overlay" style="background: url('https://via.placeholder.com/600x300/333333/ffffff?text=Rims') no-repeat center/cover; mix-blend-mode: multiply; opacity: 0.8;"></div>
-        <div id="spoiler-overlay" class="overlay" style="background: url('https://via.placeholder.com/600x300/000000/ffffff?text=Spoiler') no-repeat center bottom/cover; opacity: 0;"></div>
+        <img id="car" src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="BMW M4">
+        <div id="rims" class="part" style="background: rgba(50,50,50,0.6); mix-blend-mode: multiply;"></div>
+        <div id="spoiler" class="part" style="background: url('https://i.imgur.com/5pX0b6j.png') center bottom/cover; opacity: 0;"></div>
+        <div id="lowering" class="part" style="background: linear-gradient(transparent 60%, #000 100%); opacity: 0;"></div>
     </div>
     
     <div id="controls">
-        <h3>Barva karoserije</h3>
-        <button onclick="changeColor('#ff0000')">Rdeča</button>
-        <button onclick="changeColor('#0000ff')">Modra</button>
-        <button onclick="changeColor('#ffffff')">Bela</button>
-        <button onclick="changeColor('#000000')">Črna</button>
-        <button onclick="changeColor('#ffff00')">Rumena</button>
+        <div class="section">
+            <h3>Barva karoserije</h3>
+            <button onclick="changeBody('#ff0000')">Rdeča</button>
+            <button onclick="changeBody('#007bff')">Modra</button>
+            <button onclick="changeBody('#ffffff')">Bela</button>
+            <button onclick="changeBody('#000000')">Črna</button>
+            <button onclick="changeBody('#ffd700')">Zlata</button>
+        </div>
         
-        <h3>Platišča (Rims)</h3>
-        <button onclick="changeRims('#333333')">Črna</button>
-        <button onclick="changeRims('#c0c0c0')">Srebrna</button>
-        <button onclick="changeRims('#gold')">Zlata</button>
+        <div class="section">
+            <h3>Platišča</h3>
+            <button onclick="changeRims('#c0c0c0')">Srebrna</button>
+            <button onclick="changeRims('#000000')">Črna</button>
+            <button onclick="changeRims('#333333')">Temna</button>
+            <button onclick="changeRims('#ffd700')">Zlata</button>
+        </div>
         
-        <h3>Tuning deli</h3>
-        <button onclick="toggleSpoiler(true)">Dodaj spojler</button>
-        <button onclick="toggleSpoiler(false)">Odstrani spojler</button>
+        <div class="section">
+            <h3>Tuning</h3>
+            <button onclick="toggleSpoiler()">Spojler</button>
+            <button onclick="toggleLowering()">Lowering</button>
+        </div>
     </div>
 
     <script>
-        function changeColor(color) {
-            document.getElementById('car-image').style.filter = `hue-rotate(0deg) saturate(1) brightness(1)`;
-            document.body.style.background = color == '#000000' ? '#111' : color + '33';
-            // Za resnično barvo bi uporabili SVG, ampak tu preprosto placeholder
-            alert('Barva spremenjena v ' + color + '! (V resnični verziji bi se avto obarval)');
+        function changeBody(color) {
+            document.getElementById('car').style.filter = `hue-rotate(0deg) saturate(2)`;
+            document.getElementById('car').style.webkitFilter = `sepia(1) saturate(3) hue-rotate(${getHue(color)}deg) brightness(1.1)`;
+        }
+        
+        function getHue(color) {
+            const map = {
+                '#ff0000': 0,
+                '#007bff': 210,
+                '#ffffff': 0,
+                '#000000': 0,
+                '#ffd700': 45
+            };
+            return map[color] || 0;
         }
         
         function changeRims(color) {
-            document.getElementById('rims-overlay').style.backgroundColor = color;
+            document.getElementById('rims').style.background = color;
         }
         
-        function toggleSpoiler(show) {
-            document.getElementById('spoiler-overlay').style.opacity = show ? 1 : 0;
+        function toggleSpoiler() {
+            const s = document.getElementById('spoiler');
+            s.style.opacity = s.style.opacity == '1' ? '0' : '1';
+        }
+        
+        function toggleLowering() {
+            const l = document.getElementById('lowering');
+            l.style.opacity = l.style.opacity == '0.6' ? '0' : '0.6';
         }
     </script>
 </body>
